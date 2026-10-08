@@ -861,3 +861,73 @@ document
         "submit",
         createTimelineEvent
     );
+
+/* =========================================================
+   ATT&CK COVERAGE
+   ========================================================= */
+
+async function loadAttackCoverage() {
+    const heatmap = document.getElementById("attackHeatmap");
+    heatmap.innerHTML = '<div class="loading">Loading ATT&CK coverage...</div>';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/attack-coverage`);
+        if (!response.ok) throw new Error(`API returned ${response.status}`);
+        displayAttackCoverage(await response.json());
+    } catch (error) {
+        console.error("Failed to load ATT&CK coverage:", error);
+        heatmap.innerHTML = '<div class="loading">Failed to load ATT&CK coverage.</div>';
+    }
+}
+
+function displayAttackCoverage(coverage) {
+    document.getElementById("attackCoveragePercent").textContent =
+        coverage.coverage_percent === null ? "—" : `${coverage.coverage_percent}%`;
+    document.getElementById("coveredTechniques").textContent = coverage.covered_techniques;
+    document.getElementById("totalTechniques").textContent = coverage.total_techniques;
+    document.getElementById("mappedRules").textContent = coverage.mapped_rules;
+
+    const heatmap = document.getElementById("attackHeatmap");
+    if (!coverage.tactics.length) {
+        heatmap.innerHTML = '<div class="table-container"><div class="loading">No ATT&CK catalog techniques are loaded yet. Add the ATT&CK catalog, then sync the Sigma mappings.</div></div>';
+        return;
+    }
+
+    heatmap.innerHTML = coverage.tactics.map(tactic => `
+        <section class="attack-tactic">
+            <div class="attack-tactic-header">
+                <h3>${escapeHtml(tactic.tactic)}</h3>
+                <span>${tactic.covered_techniques}/${tactic.total_techniques} covered (${tactic.coverage_percent}%)</span>
+            </div>
+            <div class="attack-techniques">
+                ${tactic.techniques.map(technique => `
+                    <div class="attack-cell ${technique.covered ? "covered" : "uncovered"}" title="${escapeHtml(technique.rules.join(", "))}">
+                        <div class="attack-cell-id">${escapeHtml(technique.technique_id)}</div>
+                        <div class="attack-cell-name">${escapeHtml(technique.name)}</div>
+                        <div class="attack-cell-rules">${technique.covered ? `${technique.rule_count} rule${technique.rule_count === 1 ? "" : "s"}` : "No mapped rule"}</div>
+                    </div>
+                `).join("")}
+            </div>
+        </section>
+    `).join("");
+}
+
+async function syncAttackMappings() {
+    const message = document.getElementById("attackMessage");
+    message.textContent = "Syncing Sigma ATT&CK tags...";
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/attack-coverage/sync-sigma`, { method: "POST" });
+        if (!response.ok) throw new Error(`API returned ${response.status}`);
+        const result = await response.json();
+        message.textContent = `Sigma sync complete: ${result.rules} rule(s), ${result.mappings} ATT&CK mapping(s).`;
+        await loadAttackCoverage();
+    } catch (error) {
+        console.error("Failed to sync ATT&CK mappings:", error);
+        message.textContent = "Failed to sync Sigma ATT&CK mappings.";
+    }
+}
+
+document.getElementById("refreshAttackBtn").addEventListener("click", loadAttackCoverage);
+document.getElementById("syncAttackBtn").addEventListener("click", syncAttackMappings);
+loadAttackCoverage();

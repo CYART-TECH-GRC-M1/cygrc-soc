@@ -145,6 +145,30 @@
 </section>
 
 
+
+<section class="dashboard-header attack-header">
+    <div>
+        <h2>MITRE ATT&CK Coverage</h2>
+        <p>Rule-to-technique coverage calculated from the ATT&CK catalog and Sigma mappings.</p>
+    </div>
+    <div class="attack-actions">
+        <button id="syncAttackBtn">Sync Sigma Mappings</button>
+        <button id="refreshAttackBtn">Refresh Coverage</button>
+    </div>
+</section>
+
+<section class="attack-summary">
+    <div class="attack-stat-card"><span>Coverage</span><strong id="attackCoveragePercent">—</strong></div>
+    <div class="attack-stat-card"><span>Covered Techniques</span><strong id="coveredTechniques">0</strong></div>
+    <div class="attack-stat-card"><span>Total Catalog Techniques</span><strong id="totalTechniques">0</strong></div>
+    <div class="attack-stat-card"><span>Mapped Rules</span><strong id="mappedRules">0</strong></div>
+</section>
+
+<section id="attackHeatmap" class="attack-heatmap">
+    <div class="loading">Loading ATT&CK coverage...</div>
+</section>
+<p id="attackMessage" class="attack-message"></p>
+
     </main>
     <div id="caseModal" class="modal hidden">
 
