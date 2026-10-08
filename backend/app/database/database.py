@@ -27,3 +27,9 @@ def get_db():
         yield db
     finally:
         db.close()
+
+def init_db():
+    # create_all is safe for the existing schema and adds the ATT&CK tables
+    # when this feature is introduced without requiring a migration framework.
+    import app.models  # noqa: F401
+    Base.metadata.create_all(bind=engine)
