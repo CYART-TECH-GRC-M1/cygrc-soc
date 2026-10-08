@@ -6,7 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.alerts import router as alerts_router
 from app.api.v1.cases import router as cases_router
-from app.database.database import SessionLocal
+from app.api.v1.attack_coverage import router as attack_coverage_router
+from app.database.database import SessionLocal, init_db
 
 from app.services.wazuh_service import import_new_wazuh_alerts
 from app.services.case_service import create_case_from_alert
@@ -50,6 +51,7 @@ async def wazuh_polling_loop():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    init_db()
     polling_task = asyncio.create_task(
         wazuh_polling_loop()
     )
@@ -88,6 +90,11 @@ app.include_router(
 
 app.include_router(
     cases_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    attack_coverage_router,
     prefix="/api/v1",
 )
 
