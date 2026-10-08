@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CyGRC SOC Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="topbar">
+        <div>
+            <h1>CyGRC SOC</h1>
+            <p>Security Operations Center</p>
+        </div>
+
+        <div class="status">
+            <span class="status-dot"></span>
+            API Online
+        </div>
+    </header>
+
+
+    <main class="container">
+
+        <section class="dashboard-header">
+            <div>
+                <h2>Alert Queue</h2>
+                <p>Monitor and triage security alerts.</p>
+            </div>
+
+            <button id="refreshBtn">Refresh Alerts</button>
+        </section>
+
+
+        <section class="stats">
+
+            <div class="stat-card">
+                <span>Total Alerts</span>
+                <strong id="totalAlerts">0</strong>
+            </div>
+
+            <div class="stat-card high">
+                <span>High Severity</span>
+                <strong id="highAlerts">0</strong>
+            </div>
+
+            <div class="stat-card medium">
+                <span>Medium Severity</span>
+                <strong id="mediumAlerts">0</strong>
+            </div>
+
+            <div class="stat-card low">
+                <span>Low Severity</span>
+                <strong id="lowAlerts">0</strong>
+            </div>
+
+        </section>
+
+
+        <section class="filters">
+
+            <select id="severityFilter">
+                <option value="">All Severities</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+            </select>
+
+            <select id="statusFilter">
+                <option value="">All Statuses</option>
+                <option value="new">New</option>
+                <option value="assigned">Assigned</option>
+                <option value="investigating">Investigating</option>
+                <option value="contained">Contained</option>
+                <option value="closed">Closed</option>
+            </select>
+
+            <button id="filterBtn">Apply Filters</button>
+
+        </section>
+
+
+        <section class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Alert</th>
+                        <th>Severity</th>
+                        <th>Status</th>
+                        <th>Source</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="alertsTableBody">
+                    <tr>
+                        <td colspan="6" class="loading">
+                            Loading alerts...
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </section>
+        <section class="dashboard-header cases-header">
+    <div>
+        <h2>Incident Cases</h2>
+        <p>Track and manage active security incidents</p>
+    </div>
+    <button id="refreshCasesBtn">Refresh Cases</button>
+</section>
+
+<section class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Case</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Assignee</th>
+                <th>Alert ID</th>
+                <th>Created</th>
+                <th>Timeline</th>
+            </tr>
+        </thead>
+
+        <tbody id="casesTableBody">
+            <tr>
+                <td colspan="8" class="loading">
+                    Loading cases...
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</section>
+
+
+    </main>
+    <div id="caseModal" class="modal hidden">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+            <h2>Create Incident Case</h2>
+
+            <button id="closeModal" class="close-button">
+                ×
+            </button>
+        </div>
+
+        <form id="caseForm">
+
+            <input type="hidden" id="caseAlertId">
+
+            <label>
+                Case Title
+            </label>
+
+            <input
+                type="text"
+                id="caseTitle"
+                required
+            >
+
+            <label>
+                Severity
+            </label>
+
+            <select id="caseSeverity">
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+            </select>
+
+            <label>
+                Assignee
+            </label>
+
+            <input
+                type="text"
+                id="caseAssignee"
+                placeholder="SOC Analyst"
+            >
+
+            <label>
+                Description
+            </label>
+
+            <textarea
+                id="caseDescription"
+                rows="4"
+            ></textarea>
+
+            <button type="submit">
+                Create Case
+            </button>
+
+        </form>
+
+        <p id="caseMessage"></p>
+
+    </div>
+
+</div>
+<div id="timelineModal" class="modal hidden">
+    <div class="modal-content timeline-modal">
+
+        <div class="modal-header">
+            <div>
+                <h2>Case Timeline</h2>
+                <p id="timelineCaseTitle"></p>
+            </div>
+
+            <button id="closeTimelineModal" class="close-button">×</button>
+        </div>
+
+        <div id="timelineList" class="timeline-list">
+            Loading timeline...
+        </div>
+
+        <hr>
+
+        <h3>Add Timeline Event</h3>
+
+        <form id="timelineForm">
+
+            <label for="timelineEventType">
+                Event Type
+            </label>
+
+            <select id="timelineEventType">
+                <option value="investigation_started">
+                    Investigation Started
+                </option>
+
+                <option value="analysis">
+                    Analysis
+                </option>
+
+                <option value="containment">
+                    Containment
+                </option>
+
+                <option value="eradication">
+                    Eradication
+                </option>
+
+                <option value="recovery">
+                    Recovery
+                </option>
+
+                <option value="note">
+                    Analyst Note
+                </option>
+            </select>
+
+            <label for="timelineDescription">
+                Description
+            </label>
+
+            <textarea
+                id="timelineDescription"
+                rows="4"
+                required
+                placeholder="Describe what happened..."
+            ></textarea>
+
+            <label for="timelineActor">
+                Actor
+            </label>
+
+            <input
+                type="text"
+                id="timelineActor"
+                value="SOC Analyst"
+            >
+
+            <button type="submit">
+                Add Event
+            </button>
+
+        </form>
+
+        <p id="timelineMessage"></p>
+
+    </div>
+</div>
+
+
+
+    <script src="app.js"></script>
+
+</body>
+</html>
