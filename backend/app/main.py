@@ -1,3 +1,6 @@
+from app.database.database import Base, engine
+from app.models import Alert, Case, UEBAAnomaly
+
 import asyncio
 from contextlib import asynccontextmanager
 
@@ -6,10 +9,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.alerts import router as alerts_router
 from app.api.v1.cases import router as cases_router
-from app.database.database import SessionLocal
+from app.api.v1.ueba import router as ueba_router
+from app.database.database import Base, SessionLocal, engine
+from app.models import Alert, Case, UEBAAnomaly
+
 
 from app.services.wazuh_service import import_new_wazuh_alerts
 from app.services.case_service import create_case_from_alert
+
+def initialize_database():
+    Base.metadata.create_all(bind=engine)
 
 
 async def wazuh_polling_loop():
@@ -50,6 +59,8 @@ async def wazuh_polling_loop():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    initialize_database()
+
     polling_task = asyncio.create_task(
         wazuh_polling_loop()
     )
@@ -88,6 +99,11 @@ app.include_router(
 
 app.include_router(
     cases_router,
+    prefix="/api/v1",
+)
+
+app.include_router(
+    ueba_router,
     prefix="/api/v1",
 )
 
